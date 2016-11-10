@@ -2,7 +2,7 @@
 
 # Quickstart Guide
 *Install py2neo to access Neo4j database
-``sh
+```sh
 pip install -r requirements.txt
 ```
 *Using Neo4j graph database
