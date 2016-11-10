@@ -15,7 +15,6 @@ db = GraphDatabase("http://localhost:7474", username="neo4j", password="neo")
 
 #Users outside 4th degree friends are warned
 def featureThree(args):
-	print("Implementing Feature Three...")
 	# Boolean flags to identify degree of friend
 	firstFriendFlag = False
 	secondFriendFlag = False
@@ -27,10 +26,9 @@ def featureThree(args):
 
 		# Iterate Stream Payment dataframe
 		for index,row in dfPayment.iterrows():
-
 			#Find user nodes in graph based on their id
-			find_user1 = graph.find_one("user","num",int(row['id1']))
-			find_user2 = graph.find_one("user","num",int(row['id2']))
+			find_user1 = graph.find_one("user","num",int(row['id1'].strip()))
+			find_user2 = graph.find_one("user","num",int(row['id2'].strip()))
 			
 			#If both user exists
 			if find_user1 and find_user2:
@@ -100,7 +98,6 @@ def featureThree(args):
 
 # Users outside 2nd degree friends are warned
 def featureTwo(args):
-	print("Implementing Feature Two...")
 	# Boolean flags to identify degree of friend
 	firstFriendFlag = False
 	secondFriendFlag = False
@@ -112,8 +109,8 @@ def featureTwo(args):
 		for index, row in dfPayment.iterrows():
 
 			#Find user nodes in graph based on their id
-			find_user1 = graph.find_one("user","num",int(row['id1']))
-			find_user2 = graph.find_one("user","num",int(row['id2']))
+			find_user1 = graph.find_one("user","num",int(row['id1'].strip()))
+			find_user2 = graph.find_one("user","num",int(row['id2'].strip()))
 
 			#If both user exists
 			if find_user1 and find_user2:
@@ -166,11 +163,6 @@ def featureTwo(args):
 
 
 def featureOne(stream_payment,output1):
-	print("Implementing Feature One...")
-
-	#Open "stream_payment.csv" file
-	f = open(stream_payment)
-	csv_f = csv.reader(f)
 
 	# Global dataframe to access from other functions
 	global dfPayment
@@ -181,13 +173,15 @@ def featureOne(stream_payment,output1):
 	# Boolean flag to identify immediate or first degree friends
 	firstFriendFlag = False
 	
-	# Iteate file and store in dataframe
-	for row in csv_f:
-		if len(row)>2:
-			if "id" not in row[1]:
-			
-				dfPayment.loc[len(dfPayment)] = [row[1],row[2]]
+	with open(stream_payment) as f:
+		csv_f = csv.reader(f)
+		# Iteate file and store in dataframe
+		for row in csv_f:
+			if len(row)>2:
+				if "id" not in row[1].strip():
+					dfPayment.loc[len(dfPayment)] = [row[1].strip(),row[2].strip()]
 
+	
 	# Open output file
 	with open(output1,'w+') as output:
 		
@@ -243,7 +237,6 @@ def create_indices():
 #Clear any pre-existing graphs
 def clear_graph():
 	global graph
-	print("Clearing Graph...")
 	clear_cypher = 'MATCH (n) DETACH DELETE n'
 	graph.run(statement=clear_cypher)
 
@@ -251,27 +244,25 @@ def clear_graph():
 
 def create_nodes(args):
 
-	#Read batch_payment.csv file
 	
-	print("Creating Nodes...")
-	filename = args
-	f = open(filename)
-	csv_f = csv.reader(f)
+	# Create dataframe with columns
 	df = pd.DataFrame(columns=('id1','id2'))
-
 	#Store file in DataFrame using pandas
-	for row in csv_f:
-		if len(row)>2:
-			if "id" not in row[1]:
-				df.loc[len(df)] = [row[1],row[2]]
+	#Read batch_payment.csv file
+	with open(args) as f:
+		csv_f = csv.reader(f)
+		for row in csv_f:
+			if len(row)>2:
+				if "id" not in row[1].strip():
+					df.loc[len(df)] = [row[1].strip(),row[2].strip()]
+
 			
 
 	#Iterate Dataframe
 	for index,row in df.iterrows():
-		
 		#Find user nodes in graph based on their id
-		find_user1 = graph.find_one("user","num",int(row['id1']))
-		find_user2 = graph.find_one("user","num",int(row['id2']))
+		find_user1 = graph.find_one("user","num",int(row['id1'].strip()))
+		find_user2 = graph.find_one("user","num",int(row['id2'].strip()))
 
 
 		# If user 1 exists
@@ -337,7 +328,6 @@ if __name__ == "__main__":
 
 	try:
 		opts, args = getopt.getopt(sys.argv,"hi:o:",["batch_file=","stream_file="])
-		print(args)
 		batch_payment = args[1]
 		stream_payment = args[2]
 		output1 = args[3]

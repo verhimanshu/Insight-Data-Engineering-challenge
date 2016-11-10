@@ -15,4 +15,4 @@ pip install -r requirements.txt
 
 
 * Anti Fraud
-	* "antiFraud.py" takes ".csv" file as input
+	* "antiFraud.py" takes ".txt" file as input
